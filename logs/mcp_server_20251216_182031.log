@@ -1,0 +1,7 @@
+2025-12-16 18:20:31,150 - root - INFO - === ODOO MCP SERVER STARTING ===
+2025-12-16 18:20:31,150 - root - INFO - Python version: 3.12.6 (tags/v3.12.6:a4a2d2b, Sep  6 2024, 20:11:23) [MSC v.1940 64 bit (AMD64)]
+2025-12-16 18:20:31,150 - root - INFO - Environment variables:
+2025-12-16 18:20:31,150 - root - INFO - MCP object type: <class 'mcp.server.fastmcp.server.FastMCP'>
+2025-12-16 18:20:31,247 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-12-16 18:20:31,247 - root - INFO - Starting Odoo MCP server with stdio transport...
+2025-12-16 18:20:31,247 - root - INFO - Stdio server initialized, running MCP server...

@@ -1,0 +1,25 @@
+2025-12-16 19:00:41,667 - root - INFO - === ODOO MCP SERVER STARTING ===
+2025-12-16 19:00:41,673 - root - INFO - Python version: 3.12.6 (tags/v3.12.6:a4a2d2b, Sep  6 2024, 20:11:23) [MSC v.1940 64 bit (AMD64)]
+2025-12-16 19:00:41,677 - root - INFO - Environment variables:
+2025-12-16 19:00:41,679 - root - INFO -   ODOO_DB: stage
+2025-12-16 19:00:41,680 - root - INFO -   ODOO_PASSWORD: ***hidden***
+2025-12-16 19:00:41,682 - root - INFO -   ODOO_URL: https://staging.bharat.tools/
+2025-12-16 19:00:41,684 - root - INFO -   ODOO_USERNAME: info@kansatools.com
+2025-12-16 19:00:41,686 - root - INFO - MCP object type: <class 'mcp.server.fastmcp.server.FastMCP'>
+2025-12-16 19:00:41,697 - asyncio - DEBUG - Using proactor: IocpProactor
+2025-12-16 19:00:41,700 - root - INFO - Starting Odoo MCP server with stdio transport...
+2025-12-16 19:00:41,703 - root - INFO - Stdio server initialized, running MCP server...
+2025-12-16 19:00:42,263 - mcp.server.lowlevel.server - DEBUG - Received message: root=InitializedNotification(method='notifications/initialized', params=None, jsonrpc='2.0')
+2025-12-16 19:00:42,263 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x00000217343A3FB0>
+2025-12-16 19:00:42,272 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2025-12-16 19:00:42,274 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type ListToolsRequest
+2025-12-16 19:00:42,278 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-12-16 19:00:42,282 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x00000217332138C0>
+2025-12-16 19:00:42,284 - mcp.server.lowlevel.server - INFO - Processing request of type ListPromptsRequest
+2025-12-16 19:00:42,288 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type ListPromptsRequest
+2025-12-16 19:00:42,292 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x000002173430B950>
+2025-12-16 19:00:42,297 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourcesRequest
+2025-12-16 19:00:42,300 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type ListResourcesRequest
+2025-12-16 19:00:42,301 - mcp.server.fastmcp.resources.resource_manager - DEBUG - Listing resources
+2025-12-16 19:00:42,304 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-12-16 19:00:42,308 - mcp.server.lowlevel.server - DEBUG - Response sent

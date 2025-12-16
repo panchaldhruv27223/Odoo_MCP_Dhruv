@@ -134,14 +134,14 @@ def main():
     # Company count: 966
     
     
-    # recordes_result = my_odoo_client.read_records(
+    recordes_result = my_odoo_client.read_records(
                                                 
-    #                                             "res.partner",
-    #                                             [1]
+                                                "res.partner",
+                                                [1]
                                                 
-    #                                             )
+                                                )
     
-    # print(recordes_result)
+    print(recordes_result)
     
     
 if __name__ == "__main__":
