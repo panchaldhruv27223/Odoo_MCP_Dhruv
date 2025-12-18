@@ -23,3 +23,23 @@
 2025-12-16 19:00:42,301 - mcp.server.fastmcp.resources.resource_manager - DEBUG - Listing resources
 2025-12-16 19:00:42,304 - mcp.server.lowlevel.server - DEBUG - Response sent
 2025-12-16 19:00:42,308 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-12-16 19:01:00,363 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x00000217343A29F0>
+2025-12-16 19:01:00,366 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2025-12-16 19:01:00,368 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type CallToolRequest
+2025-12-16 19:01:00,545 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-12-16 19:38:11,832 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x00000217331E05C0>
+2025-12-16 19:38:11,837 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2025-12-16 19:38:11,838 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type CallToolRequest
+2025-12-16 19:38:12,995 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-12-16 19:39:02,550 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x00000217332138C0>
+2025-12-16 19:39:02,552 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2025-12-16 19:39:02,554 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type CallToolRequest
+2025-12-16 19:39:02,985 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-12-16 19:39:12,448 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x0000021733213620>
+2025-12-16 19:39:12,451 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2025-12-16 19:39:12,452 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type CallToolRequest
+2025-12-16 19:39:12,647 - mcp.server.lowlevel.server - DEBUG - Response sent
+2025-12-16 19:40:59,984 - mcp.server.lowlevel.server - DEBUG - Received message: <mcp.shared.session.RequestResponder object at 0x00000217331E05F0>
+2025-12-16 19:40:59,989 - mcp.server.lowlevel.server - INFO - Processing request of type CallToolRequest
+2025-12-16 19:40:59,991 - mcp.server.lowlevel.server - DEBUG - Dispatching request of type CallToolRequest
+2025-12-16 19:41:00,189 - mcp.server.lowlevel.server - DEBUG - Response sent
