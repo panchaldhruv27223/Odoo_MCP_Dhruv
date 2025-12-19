@@ -15,6 +15,18 @@ import mcp.types as types
 
 from src.mcp_server import mcp  # FastMCP instance from our code
 
+## we want to run mcp server on http
+import contextlib
+from collections.abc import AsyncIterator
+
+from mcp.server.lowlevel import Server
+from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
+from starlette.applications import Starlette
+from starlette.middleware.cors import CORSMiddleware
+from starlette.routing import Mount
+from starlette.types import Receive, Scope, Send
+
+
 
 def setup_logging():
     """Set up logging to both console and file"""
@@ -77,8 +89,55 @@ def main() -> int:
                 )
                 
         # Run server
-        anyio.run(arun)
-        logger.info("MCP server stopped normally")
+        # anyio.run(arun)
+        # logger.info("MCP server stopped normally")
+        
+        
+        
+        
+        ## Run on HTTP
+            # Create the session manager with true stateless mode
+        session_manager = StreamableHTTPSessionManager(
+            app=mcp._mcp_server,
+            event_store=None,
+            json_response=False,  ### you want json response or not 
+            stateless=False
+        )
+        async def handle_streamable_http(scope: Scope, receive: Receive, send: Send) -> None:
+            await session_manager.handle_request(scope, receive, send)
+
+
+        @contextlib.asynccontextmanager
+        async def lifespan(app: Starlette) -> AsyncIterator[None]:
+            """Context manager for session manager."""
+            async with session_manager.run():
+                logger.info("Application started with StreamableHTTP session manager!")
+                try:
+                    yield
+                finally:
+                    logger.info("Application shutting down...")
+
+        # Create an ASGI application using the transport
+        starlette_app = Starlette(
+            debug=True,
+            routes=[
+                Mount("/mcp", app=handle_streamable_http),
+            ],
+            lifespan=lifespan,
+        )
+
+        # Wrap ASGI application with CORS middleware to expose Mcp-Session-Id header
+        # for browser-based clients (ensures 500 errors get proper CORS headers)
+        starlette_app = CORSMiddleware(
+            starlette_app,
+            allow_origins=["*"],  # Allow all origins - adjust as needed for production
+            allow_methods=["GET", "POST", "DELETE"],  # MCP streamable HTTP methods
+            expose_headers=["Mcp-Session-Id"],
+        )
+
+        import uvicorn
+        uvicorn.run(starlette_app, host="127.0.0.1", port=8000)
+        
         return 0
         
     except Exception as e:
