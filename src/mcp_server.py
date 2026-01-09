@@ -449,6 +449,118 @@ def search_holidays(
         return SearchHolidaysResponse(success=False, error=str(e))
 
 
+class SearchPaymentResponse(BaseModel):
+    """Response model for the get_payment_total tool."""
+
+    success: bool = Field(default= False, description="Indicates if the search was successful")
+    period : Optional[str | None] = Field(default=None, description="Start date to end sate")
+    result: Optional[float | int | None] = Field(default=None, description="Final output")
+    payment_type: Optional[str | None] = Field(default=None, description="which type of payment it is?") 
+    error: Optional[str | None] = Field(default=None, description="Error message, if any")
+
+
+@mcp.tool(description="Calculate total value of payments (Cash Movement) for a period")
+def get_payment_total(
+    ctx:Context,
+    start_date:str,
+    end_date:str,
+    payment_type: str,
+    partner_id: Optional[int] = None,
+    )-> SearchPaymentResponse:
+    
+    """
+    Aggregates payments to find total Cash In (Sales) or Cash Out (Expenses).
+
+    Parameters:
+        start_date (str): Start of the period in 'YYYY-MM-DD' format.
+        end_date (str): End of the period in 'YYYY-MM-DD' format.
+        payment_type (str): Must be either:
+            - 'inbound': Money received from customers.
+            - 'outbound': Money paid to vendors.
+        partner_id (Optional[int]): (Optional) Specific Partner ID to filter by.
+
+    Returns:
+        Dict: Contains 'success', 'period', 'type', and 'total_amount'.
+    """
+    
+    odoo = ctx.request_context.lifespan_context.odoo
+
+    # Validate date format using datetime
+    try:
+        datetime.strptime(start_date, "%Y-%m-%d")
+    except ValueError:
+        return SearchPaymentResponse(
+            success=False, error="Invalid start_date format. Use YYYY-MM-DD."
+        )
+    try:
+        datetime.strptime(end_date, "%Y-%m-%d")
+    except ValueError:
+        return SearchPaymentResponse(
+            success=False, error="Invalid end_date format. Use YYYY-MM-DD."
+        )
+
+    valid_types = ["inbound", "outbound"]
+    
+    if payment_type.lower() not in valid_types:
+        return SearchPaymentResponse(
+            success= False, 
+            error= f"Invalid payment_type '{payment_type}'. Must be 'inbound' or 'outbound'."
+        )
+
+    partner_id = None
+    clean_partner_id = False
+    
+    if partner_id:
+        try:
+            clean_partner_id = int(partner_id)
+            
+        except Exception as error:
+            return SearchPaymentResponse(
+                success= False, 
+                error= f"Not able to type cast {partner_id} as int. Must be int or able to type cast int."
+            )
+            
+    domain = [
+        ["date", ">=", start_date],
+        ["date", "<=", end_date],
+        ["state", "in", ["posted", "paid"]],
+        ["payment_type", "=", payment_type.lower()]
+        ]
+    
+    if partner_id and clean_partner_id :
+        domain.append(["partner_id", "=", partner_id])
+        
+    try:
+        result = odoo.execute_method(
+            "account.payment", 
+            "read_group",
+            domain,
+            ["amount"], # Fields to fetch/sum
+            []          # Groupby list (Empty [] means sum everything into one record)
+        )
+        
+        print("Here is the result")
+        print(result)
+        
+        total_val = 0.0
+        
+        if result and isinstance(result, list) and "amount" in result[0]:
+            total_val = result[0]["amount"] or 0.0
+        
+        
+        return SearchPaymentResponse(
+            success= True,
+            payment_type= payment_type,
+            period= f"{start_date} to {end_date}",
+            result= total_val
+        )
+    
+    except Exception as error:
+        return SearchPaymentResponse(
+            success=False,
+            error= f"Not able to run query parameters are not given proper. \nErorr: {error}"            
+        )
+    
 
     
 if __name__ == "__main__":

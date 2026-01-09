@@ -89,54 +89,54 @@ def main() -> int:
                 )
                 
         # Run server
-        # anyio.run(arun)
-        # logger.info("MCP server stopped normally")
+        anyio.run(arun)
+        logger.info("MCP server stopped normally")
         
         
         
         
         ## Run on HTTP
             # Create the session manager with true stateless mode
-        session_manager = StreamableHTTPSessionManager(
-            app=mcp._mcp_server,
-            event_store=None,
-            json_response=False,  ### you want json response or not 
-            stateless=False
-        )
-        async def handle_streamable_http(scope: Scope, receive: Receive, send: Send) -> None:
-            await session_manager.handle_request(scope, receive, send)
+        # session_manager = StreamableHTTPSessionManager(
+        #     app=mcp._mcp_server,
+        #     event_store=None,
+        #     json_response=False,  ### you want json response or not 
+        #     stateless=False
+        # )
+        # async def handle_streamable_http(scope: Scope, receive: Receive, send: Send) -> None:
+        #     await session_manager.handle_request(scope, receive, send)
 
 
-        @contextlib.asynccontextmanager
-        async def lifespan(app: Starlette) -> AsyncIterator[None]:
-            """Context manager for session manager."""
-            async with session_manager.run():
-                logger.info("Application started with StreamableHTTP session manager!")
-                try:
-                    yield
-                finally:
-                    logger.info("Application shutting down...")
+        # @contextlib.asynccontextmanager
+        # async def lifespan(app: Starlette) -> AsyncIterator[None]:
+        #     """Context manager for session manager."""
+        #     async with session_manager.run():
+        #         logger.info("Application started with StreamableHTTP session manager!")
+        #         try:
+        #             yield
+        #         finally:
+        #             logger.info("Application shutting down...")
 
-        # Create an ASGI application using the transport
-        starlette_app = Starlette(
-            debug=True,
-            routes=[
-                Mount("/mcp", app=handle_streamable_http),
-            ],
-            lifespan=lifespan,
-        )
+        # # Create an ASGI application using the transport
+        # starlette_app = Starlette(
+        #     debug=True,
+        #     routes=[
+        #         Mount("/mcp", app=handle_streamable_http),
+        #     ],
+        #     lifespan=lifespan,
+        # )
 
-        # Wrap ASGI application with CORS middleware to expose Mcp-Session-Id header
-        # for browser-based clients (ensures 500 errors get proper CORS headers)
-        starlette_app = CORSMiddleware(
-            starlette_app,
-            allow_origins=["*"],  # Allow all origins - adjust as needed for production
-            allow_methods=["GET", "POST", "DELETE"],  # MCP streamable HTTP methods
-            expose_headers=["Mcp-Session-Id"],
-        )
+        # # Wrap ASGI application with CORS middleware to expose Mcp-Session-Id header
+        # # for browser-based clients (ensures 500 errors get proper CORS headers)
+        # starlette_app = CORSMiddleware(
+        #     starlette_app,
+        #     allow_origins=["*"],  # Allow all origins - adjust as needed for production
+        #     allow_methods=["GET", "POST", "DELETE"],  # MCP streamable HTTP methods
+        #     expose_headers=["Mcp-Session-Id"],
+        # )
 
-        import uvicorn
-        uvicorn.run(starlette_app, host="127.0.0.1", port=8000)
+        # import uvicorn
+        # uvicorn.run(starlette_app, host="127.0.0.1", port=8000)
         
         return 0
         
