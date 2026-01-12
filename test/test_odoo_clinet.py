@@ -1,3 +1,11 @@
+import os
+import sys 
+# print("Current working directory:", os.getcwd())
+# print(os.path.abspath(__file__))
+# print(os.path.dirname(os.path.abspath(__file__)))
+# print(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.odoo_client import get_odoo_client
 from dotenv import load_dotenv
 
@@ -134,15 +142,34 @@ def main():
     # Company count: 966
     
     
-    recordes_result = my_odoo_client.read_records(
-                                                
-                                                "res.partner",
-                                                [1]
-                                                
-                                                )
+    # recordes_result = my_odoo_client.read_records(
+    #                                             "res.partner",
+    #                                             [1]
+    #                                             )
     
-    print(recordes_result)
+    # print(recordes_result)
     
+
+    ### output: --
+
+
+
+    inventory_models = [
+        "stock.location",
+        "stock.warehouse",
+        "stock.quant",
+        "stock.picking",
+        "stock.move",
+    ]
+
+    for model in inventory_models:
+        try :
+            count = my_odoo_client.search_count(model, [])
+            print(f"Model is working: {model}: {count} records")
+
+        except Exception as error:
+            print(f"{model} is not able to work, Error: {error}")
+
     
 if __name__ == "__main__":
     main()

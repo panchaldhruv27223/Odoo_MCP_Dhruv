@@ -1,5 +1,5 @@
 def main():
-    print("Hello from odoo-github-dhruv-panchal!")
+    print("Hello from Dhruv Panchal!")
 
 
 if __name__ == "__main__":

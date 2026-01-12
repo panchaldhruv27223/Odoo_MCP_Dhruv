@@ -10,7 +10,8 @@ import urllib.parse
 import sys
 import http.client
 import xmlrpc.client
-
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 
@@ -146,7 +147,10 @@ class OdooClient:
         Get a list of all available models in the system
 
         Returns:
-            List of model names
+            Dictionary with:
+            - model_names: Sorted list of model technical names
+            - models_details: Dict mapping model name to info
+            - error: Error message if failed
 
         Examples:
             >>> client = OdooClient(url, db, username, password)
@@ -158,7 +162,7 @@ class OdooClient:
         """
         try:
             # First search for model IDs
-            model_ids = self._execute("ir.model", "search", [])
+            model_ids = self.execute_method("ir.model", "search", [])
 
             if not model_ids:
                 return {
@@ -169,7 +173,7 @@ class OdooClient:
 
             # Then read the model data with only the most basic fields
             # that are guaranteed to exist in all Odoo versions
-            result = self._execute("ir.model", "read", model_ids, ["model", "name"])
+            result = self.execute_method("ir.model", "read", model_ids, ["model", "name"])
 
             # Extract and sort model names alphabetically
             models = sorted([rec["model"] for rec in result])
@@ -198,7 +202,7 @@ class OdooClient:
             model_name: Name of the model (e.g., 'res.partner')
 
         Returns:
-            Dictionary with model information
+            Dictionary with model information or error
 
         Examples:
             >>> client = OdooClient(url, db, username, password)
@@ -207,7 +211,7 @@ class OdooClient:
             'Contact'
         """
         try:
-            result = self._execute(
+            result = self.execute_method(
                 "ir.model",
                 "search_read",
                 [("model", "=", model_name)],
@@ -240,7 +244,7 @@ class OdooClient:
             'char'
         """
         try:
-            fields = self._execute(model_name, "fields_get")
+            fields = self.execute_method(model_name, "fields_get")
             return fields
         except Exception as e:
             print(f"Error retrieving fields: {str(e)}", file=os.sys.stderr)
@@ -280,11 +284,7 @@ class OdooClient:
             if order is not None:
                 kwargs["order"] = order
 
-            # print("call from search_read")
-            # print(domain)
-            # print(kwargs)
-            
-            result = self._execute(model_name, "search_read", domain, **kwargs)
+            result = self.execute_method(model_name, "search_read", domain, **kwargs)
             return result
         except Exception as e:
             print(f"Error in search_read: {str(e)}", file=os.sys.stderr)
@@ -313,12 +313,88 @@ class OdooClient:
             if fields is not None:
                 kwargs["fields"] = fields
 
-            result = self._execute(model_name, "read", ids, kwargs)
+            result = self.execute_method(model_name, "read", ids, kwargs)
             return result
         except Exception as e:
             print(f"Error reading records: {str(e)}", file=os.sys.stderr)
             return []
+
+    def search(
+        self,
+        model_name: str,
+        domain: List,
+        offset: int = 0,
+        limit: Optional[int] = None,
+        order: Optional[str] = None
+        ) -> List[int]:
+
+        """
+        Search for record IDs matching domain.
         
+        Args:
+            model_name: Model name
+            domain: Search domain
+            offset: Number of records to skip
+            limit: Maximum records to return
+            order: Sort order
+            
+        Returns:
+            List of matching record IDs
+        """
+        kwargs = {"offset": offset}
+        if limit is not None:
+            kwargs["limit"] = limit
+        if order is not None:
+            kwargs["order"] = order
+            
+        return self.execute_method(model_name, "search", domain, **kwargs)
+
+
+    def search_count(self, model_name: str, domain: List) -> int:
+        """
+        Count records matching domain.
+        
+        Args:
+            model_name: Model name
+            domain: Search domain
+            
+        Returns:
+            Number of matching records
+        """
+        return self.execute_method(model_name, "search_count", domain)
+
+
+    def name_search(
+        self,
+        model_name: str,
+        name: str = "",
+        args: Optional[List] = None,
+        operator: str = "ilike",
+        limit: int = 100
+        ) -> List[tuple]:
+        """
+        Search by name with autocomplete-style matching.
+        
+        Args:
+            model_name: Model name
+            name: Name to search for
+            args: Additional domain conditions
+            operator: Comparison operator
+            limit: Maximum results
+            
+        Returns:
+            List of (id, name) tuples
+        """
+        return self._execute(
+            model_name,
+            "name_search",
+            name=name,
+            args=args or [],
+            operator=operator,
+            limit=limit
+        )
+
+
         
 class RedirectTransport(xmlrpc.client.Transport):
     """Transport that adds timeout, SSL verification, and redirect handling"""
@@ -389,14 +465,24 @@ class RedirectTransport(xmlrpc.client.Transport):
 
 def load_config():
     """
-    Load Odoo configuration from environment variables or config file
-
+    Load Odoo configuration from environment variables or config file.
+    
+    Checks in order:
+    1. Environment variables (ODOO_URL, ODOO_DB, ODOO_USERNAME, ODOO_PASSWORD)
+    2. Config files:
+       - ./odoo_config.json
+       - ~/.config/odoo/config.json
+       - ~/.odoo_config.json
+    
     Returns:
-        dict: Configuration dictionary with url, db, username, password
+        Configuration dictionary with url, db, username, password
+        
+    Raises:
+        FileNotFoundError: If no configuration found
     """
-    
+    # Load .env file if exists
     load_dotenv()
-    
+
     # Define config file paths to check
     config_paths = [
         "./odoo_config.json",
@@ -405,10 +491,8 @@ def load_config():
     ]
 
     # Try environment variables first
-    if all(
-        var in os.environ
-        for var in ["ODOO_URL", "ODOO_DB", "ODOO_USERNAME", "ODOO_PASSWORD"]
-    ):
+    env_vars = ["ODOO_URL", "ODOO_DB", "ODOO_USERNAME", "ODOO_PASSWORD"]
+    if all(var in os.environ for var in env_vars):
         return {
             "url": os.environ["ODOO_URL"],
             "db": os.environ["ODOO_DB"],
@@ -416,16 +500,24 @@ def load_config():
             "password": os.environ["ODOO_PASSWORD"],
         }
 
-    # Try to load from file
+    # Try to load from config files
     for path in config_paths:
         expanded_path = os.path.expanduser(path)
         if os.path.exists(expanded_path):
+            print(f"Loading config from: {expanded_path}", file=sys.stderr)
             with open(expanded_path, "r") as f:
                 return json.load(f)
 
     raise FileNotFoundError(
-        "No Odoo configuration found. Please create an odoo_config.json file or set environment variables."
+        "No Odoo configuration found.\n"
+        "Please either:\n"
+        "  1. Set environment variables: ODOO_URL, ODOO_DB, ODOO_USERNAME, ODOO_PASSWORD\n"
+        "  2. Create a config file at one of:\n"
+        f"     - {config_paths[0]}\n"
+        f"     - {config_paths[1]}\n"
+        f"     - {config_paths[2]}"
     )
+
     
 
 def get_odoo_client():
@@ -446,11 +538,11 @@ def get_odoo_client():
     # Print detailed configuration
     print("Odoo client configuration:", file=os.sys.stderr)
     print(f"  URL: {config['url']}", file=os.sys.stderr)
-    print(f"  Database: {config['db']}", file=os.sys.stderr)
-    print(f"  Username: {config['username']}", file=os.sys.stderr)
-    print(f"  Timeout: {timeout}s", file=os.sys.stderr)
-    print(f"  Verify SSL: {verify_ssl}", file=os.sys.stderr)
-
+    # print(f"  Database: {config['db']}", file=os.sys.stderr)
+    # print(f"  Username: {config['username']}", file=os.sys.stderr)
+    # print(f"  Timeout: {timeout}s", file=os.sys.stderr)
+    # print(f"  Verify SSL: {verify_ssl}", file=os.sys.stderr)
+    
     return OdooClient(
         url=config["url"],
         db=config["db"],
@@ -459,3 +551,58 @@ def get_odoo_client():
         timeout=timeout,
         verify_ssl=verify_ssl,
     )
+
+
+
+
+
+## Methods that support writing 
+### methods for writing also:    
+#   def create(
+    #     self,
+    #     model_name: str,
+    #     values: Union[Dict[str, Any], List[Dict[str, Any]]]
+    # ) -> Union[int, List[int]]:
+    #     """
+    #     Create new record(s).
+        
+    #     Args:
+    #         model_name: Model name
+    #         values: Field values (dict or list of dicts)
+            
+    #     Returns:
+    #         Created record ID(s)
+    #     """
+    #     return self._execute(model_name, "create", values)
+
+    # def write(
+    #     self,
+    #     model_name: str,
+    #     ids: List[int],
+    #     values: Dict[str, Any]
+    # ) -> bool:
+    #     """
+    #     Update existing records.
+        
+    #     Args:
+    #         model_name: Model name
+    #         ids: Record IDs to update
+    #         values: Field values to set
+            
+    #     Returns:
+    #         True if successful
+    #     """
+    #     return self._execute(model_name, "write", ids, values)
+
+    # def unlink(self, model_name: str, ids: List[int]) -> bool:
+    #     """
+    #     Delete records.
+        
+    #     Args:
+    #         model_name: Model name
+    #         ids: Record IDs to delete
+            
+    #     Returns:
+    #         True if successful
+    #     """
+    #     return self._execute(model_name, "unlink", ids)
