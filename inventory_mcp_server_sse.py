@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 from typing import AsyncIterator
 from dataclasses import dataclass
 
-from src.odoo_client import OdooClient, get_odoo_client
+from src.odoo_client_2 import OdooClient, get_odoo_client
 from src.inventory_mcp_tools import register_mcp_tools
 
 
@@ -52,4 +52,4 @@ register_mcp_tools(mcp)
 
 
 if __name__ == "__main__":
-    mcp.run(transport="sse", port=8000)
+    mcp.run(transport="sse", port=8001)
